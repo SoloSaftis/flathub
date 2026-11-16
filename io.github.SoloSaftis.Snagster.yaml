@@ -1,0 +1,55 @@
+id: io.github.SoloSaftis.Snagster
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+default-branch: stable
+command: snagster
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  # The PipeWire crates use bindgen to compile their C bindings.
+  - org.freedesktop.Sdk.Extension.llvm22
+
+finish-args:
+  # Prefer Wayland. X11 fallback uses shared memory for local graphics and capture.
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  # Automatic captures and recordings use these user directories.
+  - --filesystem=xdg-pictures
+  - --filesystem=xdg-videos
+  # Live streaming and connections to the optional local MCP server.
+  - --share=network
+  - --talk-name=org.kde.StatusNotifierWatcher
+
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm22/bin
+  prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
+
+modules:
+  - name: snagster
+    buildsystem: simple
+    build-options:
+      env:
+        # The source generator places the Cargo configuration and vendor tree here.
+        CARGO_HOME: /run/build/snagster/cargo
+        LIBCLANG_PATH: /usr/lib/sdk/llvm22/lib
+    build-commands:
+      - cargo build --frozen --release -j "$FLATPAK_BUILDER_N_JOBS"
+      - install -Dm755 target/release/snagster "$FLATPAK_DEST/bin/snagster"
+      - >-
+        install -Dm644 "assets/linux/$FLATPAK_ID.desktop"
+        -t "$FLATPAK_DEST/share/applications"
+      - >-
+        install -Dm644 "assets/linux/$FLATPAK_ID.metainfo.xml"
+        -t "$FLATPAK_DEST/share/metainfo"
+      - >-
+        install -Dm644 "assets/linux/$FLATPAK_ID.png"
+        -t "$FLATPAK_DEST/share/icons/hicolor/256x256/apps"
+      - install -Dm644 LICENSE-MIT LICENSE-APACHE -t "$FLATPAK_DEST/share/licenses/$FLATPAK_ID"
+    sources:
+      - type: git
+        url: https://github.com/SoloSaftis/Snagster.git
+        tag: v0.10.3
+        commit: 0f26b104c5a52d3bb0dedf00d774618e8ad9fbbd
+      - snagster-cargo-sources.json
