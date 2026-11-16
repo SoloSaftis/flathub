@@ -50,6 +50,6 @@ modules:
     sources:
       - type: git
         url: https://github.com/SoloSaftis/Snagster.git
-        tag: v0.10.3
-        commit: 0f26b104c5a52d3bb0dedf00d774618e8ad9fbbd
+        tag: v0.10.4
+        commit: eb4f935c3513cf3be8af046561d4ad70da179804
       - snagster-cargo-sources.json
